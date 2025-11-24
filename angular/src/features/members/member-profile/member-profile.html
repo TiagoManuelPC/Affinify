@@ -9,6 +9,35 @@
                 <span>{{member.lastActive | date:'dd MMM yyyy h:mm a'}}</span>
             </div>
             <h3 class="text-lg font-semibold text-primary">About {{member.displayName}}</h3>
-            <div>{{member.description}}</div>
+            @if(memberService.editMode()) {
+                <form #editForm="ngForm" (ngSubmit)="updateProfile()" class="flex flex-col w-full gap-4">
+                    <label class="floating-label">
+                        <span>Display Name</span>
+                        <input type="text" name="displayName" id="displayName" class="input w-full"
+                            [(ngModel)]="editableMember.displayName" placeholder="Display Name" required>
+                    </label>
+                    <label class="floating-label">
+                        <span>Description</span>
+                        <textarea name="description" id="description" class="textarea w-full"
+                            [(ngModel)]="editableMember.description" placeholder="Description" required>
+                        </textarea>
+                    </label>
+                    <label class="floating-label">
+                        <span>City</span>
+                        <input type="text" name="City" id="City" class="input w-full"
+                            [(ngModel)]="editableMember.city" placeholder="City" required>
+                    </label>
+                    <label class="floating-label">
+                        <span>Country</span>
+                        <input type="text" name="Country" id="Country" class="input w-full"
+                            [(ngModel)]="editableMember.country" placeholder="Country" required>
+                    </label>
+                    <div class="flex self-end">
+                        <button type="submit" class="btn btn-success">Save</button>
+                    </div>
+                </form>
+            } @else {
+                <div>{{member.description}}</div>
+            }
         </div>
     }
