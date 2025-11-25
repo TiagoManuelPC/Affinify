@@ -1,10 +1,10 @@
-import { Component, HostListener, inject, OnDestroy, OnInit, signal, ViewChild, viewChild } from '@angular/core';
+import { Component, HostListener, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { EditableMember, Member } from '../../../types/member';
-import { ActivatedRoute } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { MemberService } from '../../../core/services/member-service';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ToastService } from '../../../core/services/toast-service';
+import { AccountService } from '../../../core/services/account-service';
 
 @Component({
   selector: 'app-member-profile',
@@ -19,10 +19,9 @@ export class MemberProfile implements OnInit, OnDestroy {
             $event.preventDefault();
         }
     }
+    private accountService = inject(AccountService);
     private toast = inject(ToastService);
-    private route = inject(ActivatedRoute);
     protected memberService = inject(MemberService);
-    protected member = signal<Member | undefined>(undefined);
     protected editableMember: EditableMember = {
         displayName: '',
         description: '',
@@ -31,15 +30,11 @@ export class MemberProfile implements OnInit, OnDestroy {
     };
 
     ngOnInit(): void {
-        this.route.parent?.data.subscribe({
-            next: data => this.member.set(data['member'])
-        });
-
         this.editableMember = {
-            displayName: this.member()?.displayName || '',
-            description: this.member()?.description || '',
-            city: this.member()?.city || '',
-            country: this.member()?.country || ''
+            displayName: this.memberService.member()?.displayName || '',
+            description: this.memberService.member()?.description || '',
+            city: this.memberService.member()?.city || '',
+            country: this.memberService.member()?.country || ''
         };
     }
 
@@ -50,13 +45,30 @@ export class MemberProfile implements OnInit, OnDestroy {
     }
 
     updateProfile() {
-        if(!this.member()) return;
-        //
+        if(!this.memberService.member()) return;
+
         const updatedMember = {
-            ...this.member(),
+            ...this.memberService.member(),
             ...this.editableMember
         };
-        this.toast.success('Profile updated successfully');
-        this.memberService.editMode.set(false);
+
+        this.memberService.updateMember(updatedMember).subscribe({
+            next: () => {
+                const currentUser = this.accountService.currentUser();
+                if (currentUser && currentUser.displayName !== updatedMember.displayName) {
+                    currentUser.displayName = updatedMember.displayName;
+                    this.accountService.setCurrentUser(currentUser);
+                }
+
+                this.toast.success('Profile updated successfully');
+                this.memberService.editMode.set(false);
+                this.memberService.member.set(updatedMember as Member);
+                this.editForm?.reset(updatedMember);
+            },
+            error: () => {
+                this.toast.error('Failed to update profile');
+            }
+        });
+
     }
 }

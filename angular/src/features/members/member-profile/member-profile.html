@@ -1,4 +1,4 @@
-    @if(member(); as member) {
+    @if(memberService.member(); as member) {
         <div class="flex flex-col gap-3">
             <div class="flex gap-3">
                 <span class="font-semibold">Member since:</span>
@@ -24,16 +24,20 @@
                     </label>
                     <label class="floating-label">
                         <span>City</span>
-                        <input type="text" name="City" id="City" class="input w-full"
+                        <input type="text" name="city" id="city" class="input w-full"
                             [(ngModel)]="editableMember.city" placeholder="City" required>
                     </label>
                     <label class="floating-label">
                         <span>Country</span>
-                        <input type="text" name="Country" id="Country" class="input w-full"
+                        <input type="text" name="country" id="country" class="input w-full"
                             [(ngModel)]="editableMember.country" placeholder="Country" required>
                     </label>
+                    {{editableMember.city}}
+                    {{editableMember.country}}
+                    {{editableMember.description}}
+                    {{editableMember.displayName}}
                     <div class="flex self-end">
-                        <button type="submit" class="btn btn-success">Save</button>
+                        <button type="submit" class="btn btn-success" [disabled]="!editForm.dirty">Save</button>
                     </div>
                 </form>
             } @else {
