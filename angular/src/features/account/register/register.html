@@ -8,7 +8,8 @@
         </ul>
 
         @if(currentStep() === 1) {
-            <form [formGroup]="credentialsForm" class="flex flex-col gap-4 w-full steps" (ngSubmit)="register()">
+            <!-- removed steps class, issues on ui -->
+            <form [formGroup]="credentialsForm" class="flex flex-col gap-4 w-full" (ngSubmit)="nextStep()">
 
                 <app-text-input label="Email" formControlName="email" type="email" class="mt-4" />
 
@@ -20,13 +21,14 @@
 
                 <div class="flex items-center justify-end gap-3">
                     <button (click)="cancel()" type="button" class="btn">Cancel</button>
-                    <button type="button" class="btn btn-primary" [disabled]="!credentialsForm.valid" (click)="nextStep()">Next</button>
+                    <button type="submit" class="btn btn-primary" [disabled]="!credentialsForm.valid">Next</button>
                 </div>
             </form>
         }
 
         @if(currentStep() === 2) {
-            <form [formGroup]="profileForm" class="flex flex-col gap-4 w-full steps" (ngSubmit)="register()">
+            <!-- removed steps class, issues on ui -->
+            <form [formGroup]="profileForm" class="flex flex-col gap-4 w-full" (ngSubmit)="register()">
 
                 <div class="flex items-center gap-4">
                     <div class="font-semibold"> Gender:</div>
@@ -48,7 +50,7 @@
 
                 <div class="flex items-center justify-end gap-3">
                     <button (click)="previousStep()" type="button" class="btn">Back</button>
-                    <button type="button" class="btn btn-primary" [disabled]="!profileForm.valid" (click)="register()">Register</button>
+                    <button type="submit" class="btn btn-primary" [disabled]="!profileForm.valid">Register</button>
                 </div>
             </form>
         }
