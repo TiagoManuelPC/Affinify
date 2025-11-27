@@ -1,32 +1,93 @@
-import { Component, inject, input, output } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { RegisterCreds, User } from '../../../types/users';
+import { Component, inject, output, signal } from '@angular/core';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { RegisterCreds } from '../../../types/users';
 import { AccountService } from '../../../core/services/account-service';
+import { TextInput } from '../../../shared/text-input/text-input';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-register',
-  imports: [FormsModule],
+  imports: [ReactiveFormsModule, TextInput],
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
 export class Register {
+
     private accountService = inject(AccountService);
+    private fb = inject(FormBuilder);
+    private router = inject(Router);
     cancelRegister = output<boolean>();
     protected creds = {} as RegisterCreds;
+    protected credentialsForm: FormGroup;
+    protected profileForm: FormGroup;
+    protected currentStep = signal<number>(1);
+    protected validationErrors = signal<string[]>([]);
+
+    constructor() {
+        this.credentialsForm = this.fb.group({
+            email: ['', [Validators.required, Validators.email]],
+            displayName: ['', [Validators.required]],
+            password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(50)]],
+            confirmPassword: ['', [Validators.required, this.matchValues('password')]]
+        });
+
+        this.profileForm = this.fb.group({
+            gender: ['male', [Validators.required]],
+            dateOfBirth: ['', [Validators.required]],
+            city: ['', [Validators.required]],
+            country: ['', [Validators.required]],
+        });
+
+        this.credentialsForm.controls['password']?.valueChanges.subscribe(() => {
+            this.credentialsForm.controls['confirmPassword']?.updateValueAndValidity();
+        });
+    }
+
+    matchValues(matchTo: string): ValidatorFn {
+        return (control: AbstractControl): ValidationErrors | null => {
+            const parent = control.parent;
+            if(!parent) return null;
+            const matchValue = parent.get(matchTo)?.value;
+            return control.value === matchValue ? null : { passwordMismatch: true };
+        }
+    }
 
     register() {
-        this.accountService.register(this.creds).subscribe({
-            next: (user) => {
-                console.log('User registered successfully:', user);
-                this.cancel();
+        if(this.profileForm.valid && this.credentialsForm.valid) {
+            const formData = {...this.credentialsForm.value, ...this.profileForm.value};
+            console.error('Form is invalid. Current form data:', formData);
+
+            this.accountService.register(formData).subscribe({
+            next: () => {
+                this.router.navigateByUrl('/members');
             },
             error: (error) => {
                 console.error('Registration failed:', error);
+                this.validationErrors.set(error);
             },
             complete: () => {
                 console.log('Registration request completed');
             }
         });
+        }
+
+
+    }
+
+    nextStep() {
+        if(this.credentialsForm.valid) {
+            this.currentStep.update(prevStep => prevStep + 1);
+        }
+    }
+
+    previousStep() {
+        this.currentStep.update(prevStep => prevStep - 1);
+    }
+
+    getMaxDate(): string {
+        const today = new Date();
+        today.setFullYear(today.getFullYear() - 18);
+        return today.toISOString().split('T')[0];
     }
 
     cancel() {
