@@ -41,7 +41,7 @@ export class MemberPhotos implements OnInit {
                 this.memberService.editMode.set(false);
                 this.loading.set(false);
                 this.photos.update(photos => [...photos, photo]);
-                if(!this.memberService.member()?.imageUrl) {
+                if (!this.memberService.member()?.imageUrl) {
                     this.setMainLocalPhoto(photo);
                 }
             },
@@ -55,7 +55,7 @@ export class MemberPhotos implements OnInit {
     setMainPhoto(photo: Photo) {
         this.memberService.setMainPhoto(photo).subscribe({
             next: () => {
-               this.setMainLocalPhoto(photo);
+                this.setMainLocalPhoto(photo);
             },
             error: (error) => {
                 console.log('Error setting main photo', error);
@@ -66,7 +66,7 @@ export class MemberPhotos implements OnInit {
     deletePhoto(photo: Photo) {
         this.memberService.deletePhoto(photo.id).subscribe({
             next: () => {
-                this.photos.update(photos => photos.filter(p => p.id !== photo.id));
+                this.photos.update(photos => photos.filter(x => x.id !== photo.id));
             },
             error: (error) => {
                 console.log('Error deleting photo', error);
